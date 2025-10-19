@@ -69,9 +69,49 @@
                 (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
         </div>
+        
+        <div id="giscus-container" style="margin: 15px 0;"></div>
+        <script>
+            function loadGiscus() {
+                const container = document.getElementById('giscus-container');
+                while (container.firstChild) container.removeChild(container.firstChild);
+                
+                const script = document.createElement('script');
+                script.src = 'https://giscus.app/client.js';
+                script.setAttribute('data-repo', 'OUS-KR/INTP.KR');
+                script.setAttribute('data-repo-id', 'R_kgDOOrfScQ');
+                script.setAttribute('data-category', 'Announcements');
+                script.setAttribute('data-category-id', 'DIC_kwDOOrfScc4CqQAN');
+                script.setAttribute('data-mapping', 'pathname');
+                script.setAttribute('data-strict', '0');
+                script.setAttribute('data-reactions-enabled', '1');
+                script.setAttribute('data-emit-metadata', '1');
+                script.setAttribute('data-input-position', 'top');
+                script.setAttribute('data-theme', localStorage.getItem('theme') ?? 'light');
+                script.setAttribute('data-loading', 'lazy');
+                script.setAttribute('data-lang', 'ko');
+                script.setAttribute('crossorigin', 'anonymous');
+                script.setAttribute('async', '');
+                
+                container.appendChild(script);
+            }
+            
+            loadGiscus();
+        </script>
+        
+        <div class="content-card">
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-format="autorelaxed"
+                data-ad-client="ca-pub-4262871645049971"
+                data-ad-slot="5813041058"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
     </div>
 
-    <script src="/u/tests/assets/js/main.js?20251010170000" defer></script>
+    <script src="/u/tests/assets/js/main.js?20251020100100" defer></script>
     <script src="/u/tests/assets/js/dynamic-menu.js?20251010170000" defer></script>
     <script>
     function getDailySeed() {
@@ -113,11 +153,11 @@
         return hasBatchim ? particles[0] : particles[1];
     }
 
-    // --- Enhanced Generative Data Parts ---
+    // --- Enhanced Generative Data Parts (INTJ) ---
     const data = {
         advice: {
             openings: ["오늘은", "오늘 당신의", "지금은", "오늘은 특별히"],
-            subjects: ["당신의 뛰어난 전략적 사고가", "복잡한 문제를 분석하는 능력이", "미래를 내다보는 깊은 통찰력이", "독립적으로 사고하는 힘이", "지식을 향한 끊임없는 탐구 정신이"],
+            subjects: ["뛰어난 전략적 사고가", "복잡한 문제를 분석하는 능력이", "미래를 내다보는 깊은 통찰력이", "독립적으로 사고하는 힘이", "지식을 향한 끊임없는 탐구 정신이"],
             verbs: ["장기적인 성공의 기틀을 마련합니다.", "가장 효율적인 해결책을 제시합니다.", "잠재적인 위기를 미리 감지하고 대비하게 합니다.", "대중의 의견에 휩쓸리지 않고 올바른 길을 가게 합니다.", "당신을 분야 최고의 전문가로 만들 것입니다."],
             connectors: ["그러니", "이 기회를 활용해", "자신감을 갖고", "망설이지 말고"],
             actions: ["당신의 장기적인 목표를 다시 한번 점검하고 구체화해 보세요.", "비효율적이라고 생각되는 시스템을 개선할 방안을 구상해 보세요.", "혼자만의 시간을 갖고 복잡한 문제에 대해 깊이 사색해 보세요.", "새로운 지식을 습득하기 위해 책을 읽거나 강의를 들어보세요.", "가끔은 당신의 계획을 주변 사람들과 공유하고 피드백을 구해 보세요."]
@@ -132,7 +172,7 @@
             reasons: ["날카로운 통찰력이 미래의 가능성을 예측하여", "복잡한 시스템의 핵심 원리를 간파하여", "전략적인 사고가 최적의 경로를 설계하여", "지적 호기심이 새로운 지식의 문을 열어"],
             results: ["남들이 보지 못하는 기회를 포착할 수 있습니다.", "가장 효율적이고 논리적인 해결책을 찾게 됩니다.", "목표 달성을 위한 완벽한 계획을 세울 수 있습니다.", "당신의 전문성이 한 단계 더 깊어질 것입니다."]
         },
-        keywords: ["전략가", "논리", "독립성", "통찰력", "계획", "효율성", "지식", "개념", "비전", "완벽주의", "내향적", "직관적", "사고적", "판단적", "분석적", "독창성", "결단력", "자신감"]
+        keywords: ["전략가", "논리", "독립성", "통찰력", "계획", "효율성", "지식", "비전"]
     };
 
     // --- Generator Functions ---
