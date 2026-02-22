@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INTJ — intj.kr</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;0,700;1,300;1,400&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style type="text/tailwindcss">
+    @theme {
+      --color-void-50:#f2f3f5;
+      --color-void-100:#d8dce4;
+      --color-void-200:#adb5c7;
+      --color-void-300:#7a87a3;
+      --color-void-400:#4f5e7e;
+      --color-void-500:#2e3f62;
+      --color-void-600:#1a2a4a;
+      --color-void-700:#0f1c36;
+      --color-void-800:#081224;
+      --color-void-900:#040b18;
+      --color-void-950:#02060f;
+      --color-cobalt-200:#c3d4f7;
+      --color-cobalt-300:#91b0ef;
+      --color-cobalt-400:#5585e2;
+      --color-cobalt-500:#2b5fcf;
+      --color-cobalt-600:#1a44ab;
+      --color-cobalt-700:#0f2e80;
+      --color-steel-200:#d9dde8;
+      --color-steel-300:#b0b8cc;
+      --color-steel-400:#7e8ba8;
+      --color-steel-500:#546080;
+      --color-steel-600:#3a445e;
+      --color-ember-400:#e05050;
+      --color-ember-500:#c03030;
+      --color-ember-600:#901818;
+      --font-display:"Space Mono","Courier New",monospace;
+      --font-serif:"Cormorant Garamond",Georgia,serif;
+      --font-body:"Space Grotesk",system-ui,sans-serif;
+    }
+
+    @layer base {
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+      html{background:#02060f;color:#d8dce4;font-family:var(--font-body);scroll-behavior:smooth;overflow-x:hidden;}
+      body{min-height:100vh;position:relative;}
+      ::selection{background:rgba(43,95,207,.38);color:#fff;}
+      ::-webkit-scrollbar{width:4px;}
+      ::-webkit-scrollbar-track{background:#040b18;}
+      ::-webkit-scrollbar-thumb{background:#2b5fcf;border-radius:2px;}
+    }
+
+    /* ── Canvas & Overlays ── */
+    #blueprint-canvas{
+      position:fixed;inset:0;z-index:0;pointer-events:none;
+    }
+    .grid-overlay{
+      position:fixed;inset:0;z-index:1;pointer-events:none;
+      background-image:
+        linear-gradient(rgba(43,95,207,.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(43,95,207,.04) 1px,transparent 1px);
+      background-size:64px 64px;
+    }
+    .scan-line{
+      position:fixed;inset:0;z-index:2;pointer-events:none;
+      background:repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(43,95,207,.018) 3px,
+        rgba(43,95,207,.018) 4px
+      );
+    }
+    .vignette{
+      position:fixed;inset:0;z-index:3;pointer-events:none;
+      background:radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(2,6,15,.92) 100%);
+    }
+
+    /* ── Site Wrapper ── */
+    .site-wrapper{
+      position:relative;z-index:10;
+      display:grid;grid-template-rows:auto 1fr auto;min-height:100vh;
+    }
+
+    /* ── Header ── */
+    .glass-header{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:blur(24px) saturate(1.4);
+      background:rgba(2,6,15,.78);
+      border-bottom:1px solid rgba(43,95,207,.18);
+    }
+    .logo-intj{
+      font-family:var(--font-display);
+      font-size:1.4rem;letter-spacing:.18em;
+      color:#91b0ef;text-decoration:none;
+      text-shadow:0 0 20px rgba(43,95,207,.6);
+      transition:color .2s;
+    }
+    .logo-intj:hover{color:#fff;}
+    .nav-link{
+      font-family:var(--font-display);font-size:.72rem;
+      letter-spacing:.14em;color:#7a87a3;
+      text-decoration:none;transition:color .2s;
+    }
+    .nav-link:hover{color:#91b0ef;}
+    .domain-badge{
+      font-family:var(--font-display);font-size:.68rem;
+      letter-spacing:.1em;color:rgba(145,176,239,.7);
+      border:1px solid rgba(43,95,207,.3);
+      padding:.25rem .75rem;border-radius:2px;
+      background:rgba(43,95,207,.08);
+    }
+
+    /* ── Hero ── */
+    .hero-section{
+      position:relative;min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      padding:8rem 1.5rem 6rem;overflow:hidden;
+    }
+    .hero-bg-text{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-family:var(--font-display);font-size:clamp(9rem,22vw,20rem);
+      font-weight:700;letter-spacing:-.02em;
+      color:transparent;
+      -webkit-text-stroke:1px rgba(43,95,207,.1);
+      user-select:none;pointer-events:none;
+      animation:breathe 8s ease-in-out infinite;
+    }
+    @keyframes breathe{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:.7;transform:scale(1.015);}}
+
+    /* blueprint reticle */
+    .reticle{
+      position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      width:min(560px,80vw);height:min(560px,80vw);
+      border:1px solid rgba(43,95,207,.12);border-radius:50%;
+      pointer-events:none;
+      animation:spin-slow 30s linear infinite;
+    }
+    .reticle::before{
+      content:'';position:absolute;inset:20px;
+      border:1px solid rgba(43,95,207,.07);border-radius:50%;
+    }
+    .reticle::after{
+      content:'';position:absolute;inset:50px;
+      border:1px solid rgba(43,95,207,.05);border-radius:50%;
+    }
+    @keyframes spin-slow{to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+    .hero-content{position:relative;z-index:2;text-align:center;max-width:700px;}
+    .hero-badge{
+      display:inline-flex;align-items:center;gap:.5rem;
+      font-family:var(--font-display);font-size:.65rem;letter-spacing:.18em;
+      color:#5585e2;border:1px solid rgba(43,95,207,.35);
+      padding:.35rem 1rem;border-radius:2px;
+      background:rgba(43,95,207,.1);
+      margin-bottom:2rem;text-transform:uppercase;
+    }
+    .hero-badge::before{content:'[';color:rgba(85,133,226,.5);}
+    .hero-badge::after{content:']';color:rgba(85,133,226,.5);}
+
+    .hero-logo{
+      font-family:var(--font-display);
+      font-size:clamp(5rem,14vw,10rem);
+      font-weight:700;letter-spacing:.08em;
+      background:linear-gradient(135deg,#91b0ef 0%,#5585e2 40%,#2b5fcf 70%,#c3d4f7 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+      filter:drop-shadow(0 0 30px rgba(43,95,207,.5));
+      line-height:1;margin-bottom:1rem;
+    }
+    .hero-tagline{
+      font-family:var(--font-serif);font-size:clamp(1rem,2.5vw,1.4rem);
+      font-style:italic;color:#7a87a3;letter-spacing:.06em;
+      margin-bottom:.6rem;
+    }
+    .hero-quote{
+      font-family:var(--font-serif);font-size:clamp(1.1rem,2.2vw,1.35rem);
+      font-style:italic;font-weight:300;
+      color:rgba(209,220,244,.75);
+      margin-bottom:2.5rem;
+      line-height:1.6;
+      border-left:2px solid rgba(43,95,207,.4);
+      padding-left:1.2rem;text-align:left;
+    }
+    .trait-pills{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:2.5rem;}
+    .trait-pill{
+      font-family:var(--font-display);font-size:.62rem;letter-spacing:.12em;
+      padding:.3rem .85rem;border-radius:2px;
+      border:1px solid rgba(43,95,207,.3);
+      color:#7a87a3;background:rgba(43,95,207,.07);
+      text-transform:uppercase;transition:all .2s;
+    }
+    .trait-pill:hover{border-color:rgba(85,133,226,.6);color:#91b0ef;background:rgba(43,95,207,.15);}
+    .cta-btn{
+      display:inline-flex;align-items:center;gap:.6rem;
+      font-family:var(--font-display);font-size:.75rem;letter-spacing:.16em;
+      text-decoration:none;padding:.85rem 2.2rem;
+      border:1px solid rgba(43,95,207,.55);border-radius:2px;
+      color:#91b0ef;background:rgba(43,95,207,.12);
+      text-transform:uppercase;
+      transition:all .28s;
+    }
+    .cta-btn:hover{background:rgba(43,95,207,.28);border-color:#5585e2;color:#fff;box-shadow:0 0 28px rgba(43,95,207,.35);}
+    .scroll-indicator{
+      position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+      font-family:var(--font-display);font-size:.6rem;letter-spacing:.15em;
+      color:rgba(121,135,163,.5);display:flex;flex-direction:column;align-items:center;gap:.4rem;
+    }
+    .scroll-indicator::after{
+      content:'';width:1px;height:40px;
+      background:linear-gradient(to bottom,rgba(43,95,207,.4),transparent);
+      animation:scroll-grow 2s ease-in-out infinite;
+    }
+    @keyframes scroll-grow{0%,100%{height:20px;opacity:.3;}50%{height:48px;opacity:.8;}}
+
+    /* ── Stats Row ── */
+    .stats-row{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      border-top:1px solid rgba(43,95,207,.15);
+      border-bottom:1px solid rgba(43,95,207,.15);
+      background:rgba(4,11,24,.6);backdrop-filter:blur(12px);
+    }
+    .stat-cell{
+      padding:2.2rem 1rem;text-align:center;
+      border-right:1px solid rgba(43,95,207,.1);
+    }
+    .stat-cell:last-child{border-right:none;}
+    .stat-value{
+      font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);
+      color:#5585e2;letter-spacing:.04em;display:block;margin-bottom:.3rem;
+    }
+    .stat-label{
+      font-family:var(--font-display);font-size:.6rem;
+      letter-spacing:.14em;color:#546080;text-transform:uppercase;
+    }
+
+    /* ── Letters Grid ── */
+    .letters-section{padding:6rem 1.5rem;max-width:1200px;margin:0 auto;}
+    .letters-title{
+      font-family:var(--font-display);font-size:clamp(1.4rem,3vw,2rem);
+      letter-spacing:.14em;color:#5585e2;text-transform:uppercase;
+      text-align:center;margin-bottom:.6rem;
+    }
+    .letters-subtitle{
+      font-family:var(--font-serif);font-style:italic;font-size:1rem;
+      color:#546080;text-align:center;margin-bottom:3.5rem;
+    }
+    .letters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;border:1px solid rgba(43,95,207,.15);}
+    .letter-block{
+      padding:2.5rem 1.8rem;background:rgba(4,11,24,.5);
+      border-right:1px solid rgba(43,95,207,.08);
+      transition:background .3s;position:relative;overflow:hidden;
+    }
+    .letter-block:last-child{border-right:none;}
+    .letter-block::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:var(--letter-accent,rgba(43,95,207,.4));
+      transform:scaleX(0);transition:transform .3s;transform-origin:left;
+    }
+    .letter-block:hover::before{transform:scaleX(1);}
+    .letter-block:hover{background:rgba(43,95,207,.07);}
+    .letter-char{
+      font-family:var(--font-display);font-size:3.5rem;font-weight:700;
+      color:var(--letter-accent,#5585e2);display:block;
+      margin-bottom:.5rem;line-height:1;
+      text-shadow:0 0 20px var(--letter-accent,rgba(43,95,207,.6));
+    }
+    .letter-name{
+      font-family:var(--font-display);font-size:.65rem;letter-spacing:.14em;
+      color:#7a87a3;text-transform:uppercase;margin-bottom:.8rem;display:block;
+    }
+    .letter-desc{font-family:var(--font-body);font-size:.82rem;color:#546080;line-height:1.6;}
+
+    /* ── Blueprint Cards (Architecture section) ── */
+    .arch-section{padding:6rem 1.5rem;max-width:1200px;margin:0 auto;}
+    .section-label{
+      font-family:var(--font-display);font-size:.62rem;letter-spacing:.2em;
+      color:#2b5fcf;text-transform:uppercase;
+      margin-bottom:.4rem;
+      display:flex;align-items:center;gap:.8rem;
+    }
+    .section-label::before{content:'';display:block;width:2rem;height:1px;background:#2b5fcf;}
+    .section-title{
+      font-family:var(--font-serif);font-size:clamp(1.6rem,3.5vw,2.4rem);
+      font-weight:600;color:#c3d4f7;margin-bottom:.6rem;line-height:1.2;
+    }
+    .section-desc{font-family:var(--font-body);font-size:.9rem;color:#546080;max-width:600px;margin-bottom:3rem;line-height:1.7;}
+    .arch-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;border:1px solid rgba(43,95,207,.12);}
+    .arch-card{
+      padding:2.5rem 2rem;background:rgba(4,11,24,.6);
+      position:relative;overflow:hidden;
+      transition:background .3s;
+    }
+    .arch-card:hover{background:rgba(43,95,207,.06);}
+    .arch-card::after{
+      content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+      background:linear-gradient(to right,transparent,var(--card-color,rgba(43,95,207,.4)),transparent);
+      transform:scaleX(0);transition:transform .4s;
+    }
+    .arch-card:hover::after{transform:scaleX(1);}
+    .arch-card-icon{
+      width:40px;height:40px;margin-bottom:1.4rem;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--card-color,rgba(43,95,207,.3));
+      color:var(--card-color,#5585e2);font-size:1.2rem;
+      font-family:var(--font-display);
+    }
+    .arch-card-title{
+      font-family:var(--font-display);font-size:.8rem;letter-spacing:.14em;
+      color:#91b0ef;text-transform:uppercase;margin-bottom:.8rem;
+    }
+    .arch-card-text{font-family:var(--font-body);font-size:.85rem;color:#546080;line-height:1.7;}
+
+    /* ── Codex Box ── */
+    .codex-box{
+      max-width:800px;margin:0 auto 6rem;
+      border:1px solid rgba(43,95,207,.2);
+      background:rgba(4,11,24,.7);
+      backdrop-filter:blur(16px);
+      padding:2.5rem;
+    }
+    .codex-title{
+      font-family:var(--font-display);font-size:.65rem;letter-spacing:.2em;
+      color:#5585e2;text-transform:uppercase;margin-bottom:1.5rem;
+      display:flex;align-items:center;gap:.8rem;
+    }
+    .codex-title::before{content:'//';color:rgba(85,133,226,.4);}
+    .codex-row{
+      display:grid;grid-template-columns:100px 1fr;
+      gap:1rem;align-items:start;
+      padding:.8rem 0;border-bottom:1px solid rgba(43,95,207,.08);
+    }
+    .codex-row:last-child{border-bottom:none;}
+    .codex-key{
+      font-family:var(--font-display);font-size:.62rem;letter-spacing:.1em;
+      color:#2b5fcf;text-transform:uppercase;padding-top:.1rem;
+    }
+    .codex-val{font-family:var(--font-body);font-size:.85rem;color:#7a87a3;line-height:1.6;}
+    .codex-val strong{color:#91b0ef;font-weight:500;}
+
+    /* ── Origin / About ── */
+    .origin-section{padding:5rem 1.5rem;max-width:800px;margin:0 auto;text-align:center;}
+    .origin-glyph{
+      font-family:var(--font-display);font-size:3rem;
+      color:rgba(43,95,207,.3);margin-bottom:1.5rem;
+      display:block;letter-spacing:.1em;
+    }
+    .origin-title{
+      font-family:var(--font-serif);font-size:clamp(1.4rem,3vw,2rem);
+      font-weight:600;color:#c3d4f7;margin-bottom:1.2rem;
+      font-style:italic;
+    }
+    .origin-text{font-family:var(--font-body);font-size:.9rem;color:#546080;line-height:1.85;margin-bottom:1rem;}
+
+    /* ── Contact ── */
+    .contact-section{
+      padding:7rem 1.5rem;text-align:center;
+      border-top:1px solid rgba(43,95,207,.1);
+    }
+    .contact-label{
+      font-family:var(--font-display);font-size:.62rem;letter-spacing:.2em;
+      color:#2b5fcf;text-transform:uppercase;margin-bottom:1rem;
+    }
+    .contact-title{
+      font-family:var(--font-serif);font-size:clamp(1.6rem,4vw,2.8rem);
+      font-weight:600;font-style:italic;color:#c3d4f7;margin-bottom:.8rem;
+    }
+    .contact-sub{font-family:var(--font-body);font-size:.88rem;color:#546080;margin-bottom:2.5rem;}
+    .contact-email{
+      display:inline-flex;align-items:center;gap:.7rem;
+      font-family:var(--font-display);font-size:clamp(.8rem,1.8vw,1rem);
+      letter-spacing:.1em;color:#5585e2;
+      text-decoration:none;
+      border:1px solid rgba(43,95,207,.3);
+      padding:1rem 2.5rem;border-radius:2px;
+      background:rgba(43,95,207,.07);
+      transition:all .28s;
+    }
+    .contact-email:hover{background:rgba(43,95,207,.2);border-color:#5585e2;color:#fff;box-shadow:0 0 32px rgba(43,95,207,.3);}
+
+    /* ── Footer ── */
+    .site-footer{
+      border-top:1px solid rgba(43,95,207,.1);
+      padding:2rem 2.5rem;
+      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;
+      background:rgba(2,6,15,.9);
+    }
+    .footer-copy{
+      font-family:var(--font-display);font-size:.6rem;
+      letter-spacing:.12em;color:#3a445e;text-transform:uppercase;
+    }
+
+    /* ── Animations ── */
+    .fade-up{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+    .fade-up.visible{opacity:1;transform:translateY(0);}
+
+    @keyframes fade-in{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+    .hero-content > *{animation:fade-in .8s ease both;}
+    .hero-content > *:nth-child(1){animation-delay:.1s;}
+    .hero-content > *:nth-child(2){animation-delay:.25s;}
+    .hero-content > *:nth-child(3){animation-delay:.4s;}
+    .hero-content > *:nth-child(4){animation-delay:.55s;}
+    .hero-content > *:nth-child(5){animation-delay:.7s;}
+    .hero-content > *:nth-child(6){animation-delay:.85s;}
+  </style>
+</head>
+<body>
+
+<canvas id="blueprint-canvas"></canvas>
+<div class="grid-overlay" aria-hidden="true"></div>
+<div class="scan-line" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<div class="site-wrapper">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="glass-header flex items-center justify-between px-8 py-5">
+    <a href="/" class="logo-intj">INTJ</a>
+    <nav class="hidden sm:flex gap-10">
+      <a href="#letters" class="nav-link">LETTERS</a>
+      <a href="#blueprint" class="nav-link">BLUEPRINT</a>
+      <a href="#contact" class="nav-link">CONTACT</a>
+    </nav>
+    <div class="domain-badge hidden sm:block">intj.kr</div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main>
+
+    <!-- HERO -->
+    <section class="hero-section">
+      <div class="hero-bg-text" aria-hidden="true">INTJ</div>
+      <div class="reticle" aria-hidden="true"></div>
+
+      <div class="hero-content">
+        <div class="hero-badge">THE ARCHITECT</div>
+        <div class="hero-logo">INTJ</div>
+        <p class="hero-tagline">Introverted · Intuitive · Thinking · Judging</p>
+        <blockquote class="hero-quote">
+          "침묵 속에 세계를 설계하고,<br>
+          혼자서 미래를 완성한다."
+        </blockquote>
+        <div class="trait-pills">
+          <span class="trait-pill">STRATEGIC</span>
+          <span class="trait-pill">VISIONARY</span>
+          <span class="trait-pill">INDEPENDENT</span>
+          <span class="trait-pill">PRECISE</span>
+          <span class="trait-pill">DECISIVE</span>
+          <span class="trait-pill">MASTERY</span>
+        </div>
+        <a href="#blueprint" class="cta-btn">
+          <span>ENTER BLUEPRINT</span>
+          <span style="font-size:.9em;opacity:.7;">→</span>
+        </a>
+      </div>
+
+      <div class="scroll-indicator" aria-hidden="true">SCROLL</div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats-row fade-up">
+      <div class="stat-cell">
+        <span class="stat-value">2%</span>
+        <span class="stat-label">Of Population</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-value">Ni</span>
+        <span class="stat-label">Dominant Function</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-value">#1</span>
+        <span class="stat-label">Vision Depth</span>
+      </div>
+    </div>
+
+    <!-- LETTERS -->
+    <section id="letters" class="letters-section fade-up">
+      <p class="letters-title">I · N · T · J</p>
+      <p class="letters-subtitle">The four pillars of the Architect's mind</p>
+      <div class="letters-grid">
+        <div class="letter-block" style="--letter-accent:#5585e2;">
+          <span class="letter-char">I</span>
+          <span class="letter-name">Introverted</span>
+          <p class="letter-desc">내면의 세계에서 에너지를 얻는다. 깊은 사색과 고독 속에서 최고의 통찰을 이끌어낸다.</p>
+        </div>
+        <div class="letter-block" style="--letter-accent:#7a87a3;">
+          <span class="letter-char">N</span>
+          <span class="letter-name">Intuitive</span>
+          <p class="letter-desc">현재보다 미래 가능성을 직관한다. 패턴을 읽고, 표면 아래의 구조를 꿰뚫어 본다.</p>
+        </div>
+        <div class="letter-block" style="--letter-accent:#b0b8cc;">
+          <span class="letter-char">T</span>
+          <span class="letter-name">Thinking</span>
+          <p class="letter-desc">논리와 원칙으로 판단한다. 감정보다 효율과 진실을 우선하는 냉철한 분석가.</p>
+        </div>
+        <div class="letter-block" style="--letter-accent:#e05050;">
+          <span class="letter-char">J</span>
+          <span class="letter-name">Judging</span>
+          <p class="letter-desc">계획하고 완성한다. 명확한 목표 아래 모든 것을 구조화하며 실행에 옮긴다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLUEPRINT CARDS -->
+    <section id="blueprint" class="arch-section fade-up">
+      <p class="section-label">Core Architecture</p>
+      <h2 class="section-title">설계자의 세 가지 원칙</h2>
+      <p class="section-desc">INTJ는 직관과 논리로 세계를 재구성하는 전략적 비전가다. 내면의 청사진이 곧 현실이 된다.</p>
+      <div class="arch-cards">
+        <div class="arch-card" style="--card-color:#5585e2;">
+          <div class="arch-card-icon" style="--card-color:rgba(85,133,226,.4);">⬡</div>
+          <h3 class="arch-card-title">VISION</h3>
+          <p class="arch-card-text">남들이 보지 못하는 미래를 설계한다. Ni의 심층 직관은 수년 앞을 내다보는 청사진을 그린다. 단기적 소음을 걸러내고 장기 구조에 집중한다.</p>
+        </div>
+        <div class="arch-card" style="--card-color:#91b0ef;">
+          <div class="arch-card-icon" style="--card-color:rgba(145,176,239,.4);">◈</div>
+          <h3 class="arch-card-title">PRECISION</h3>
+          <p class="arch-card-text">Te의 외향적 사고가 계획을 현실로 전환한다. 비효율을 용납하지 않으며, 모든 시스템을 최적화된 형태로 정제한다.</p>
+        </div>
+        <div class="arch-card" style="--card-color:#e05050;">
+          <div class="arch-card-icon" style="--card-color:rgba(224,80,80,.4);">◯</div>
+          <h3 class="arch-card-title">MASTERY</h3>
+          <p class="arch-card-text">선택한 분야에서 완벽한 숙달을 추구한다. 깊이 없는 넓이를 거부하며, 전문성과 지적 자립을 삶의 핵심 가치로 삼는다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODEX BOX -->
+    <div class="codex-box fade-up px-6">
+      <p class="codex-title">INTJ_PROFILE.log</p>
+      <div class="codex-row">
+        <span class="codex-key">C01</span>
+        <span class="codex-val"><strong>Ni 지배</strong> — 내향 직관이 일차 기능. 무의식적 패턴 인식으로 미래를 구조화하고, 단일 가능성으로 수렴하는 통찰 엔진.</span>
+      </div>
+      <div class="codex-row">
+        <span class="codex-key">C02</span>
+        <span class="codex-val"><strong>희귀도</strong> — 전체 인구의 약 2%. 특히 여성 INTJ는 더욱 드물어 약 0.8~1.5% 수준으로 추정된다.</span>
+      </div>
+      <div class="codex-row">
+        <span class="codex-key">C03</span>
+        <span class="codex-val"><strong>그림자</strong> — Fi 열등 기능으로 인해 내면의 감정 처리가 미숙할 수 있다. 스트레스 시 감정 폭발 또는 완전한 감정 차단이 나타난다.</span>
+      </div>
+      <div class="codex-row">
+        <span class="codex-key">C04</span>
+        <span class="codex-val"><strong>핵심 욕구</strong> — 능력 인정과 지적 자율성. 자신의 시스템과 방법론에 대한 통제권이 보장될 때 최고의 성과를 발휘한다.</span>
+      </div>
+    </div>
+
+    <!-- ORIGIN -->
+    <section class="origin-section fade-up">
+      <span class="origin-glyph">設</span>
+      <h2 class="origin-title">The Architect's Manifesto</h2>
+      <p class="origin-text">
+        INTJ는 전체 MBTI 유형 중 가장 독립적이고 전략적인 마음의 소유자로 꼽힌다. 전 세계 인구의 약 2%에 불과한 이들은 복잡한 시스템을 직관적으로 파악하고, 이를 논리적으로 재구성하는 능력을 타고났다. 내향성과 직관의 결합은 깊은 사색과 장기적 비전을 가능하게 하며, 사고와 판단의 조합은 그 비전을 현실로 구현하는 실행력을 부여한다.
+      </p>
+      <p class="origin-text">
+        이들은 지식의 깊이를 중시하며, 선택한 분야에서 진정한 전문가가 되고자 한다. 겉으로는 차갑고 단호해 보이지만, 내면에는 세상을 더 나은 방향으로 설계하려는 조용하고 강렬한 열망이 타오르고 있다. INTJ의 침묵은 공허가 아닌 — 설계의 밀도다.
+      </p>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="contact-section fade-up">
+      <p class="contact-label">// Establish Connection</p>
+      <h2 class="contact-title">Contact the Architect</h2>
+      <p class="contact-sub">전략적 제안, 협업, 또는 비전을 공유하고 싶다면.</p>
+      <a href="mailto:hello@intj.kr" class="contact-email">
+        <span style="opacity:.5;font-size:.8em;">✉</span>
+        hello@intj.kr
+      </a>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="site-footer">
+    <span class="footer-copy">© 2026 intj.kr — All rights reserved.</span>
+    <span class="footer-copy" style="opacity:0.45;">vision · precision · independence · mastery</span>
+  </footer>
+
+</div><!-- /.site-wrapper -->
+
+<script>
+(function () {
+  /* ─── Canvas Setup ─── */
+  const canvas = document.getElementById('blueprint-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', () => { resize(); rebuildAll(); });
+  resize();
+
+  /* ─── Color Palette ─── */
+  const COBALT  = 'rgba(43,95,207,';
+  const STEEL   = 'rgba(80,96,128,';
+  const SILVER  = 'rgba(176,184,204,';
+  const EMBER   = 'rgba(224,80,80,';
+  const WHITE   = 'rgba(255,255,255,';
+
+  /* ─── Utility ─── */
+  const rand  = (a, b) => Math.random() * (b - a) + a;
+  const randI = (a, b) => Math.floor(rand(a, b));
+
+  /* ══════════════════════════════════
+     CLASS 1: BlueprintNode — 격자 교차점 맥동 노드
+     수량: 48
+  ══════════════════════════════════ */
+  class BlueprintNode {
+    constructor() { this.init(); }
+    init() {
+      const cols = Math.floor(canvas.width / 64) + 2;
+      const rows = Math.floor(canvas.height / 64) + 2;
+      this.x = randI(0, cols) * 64;
+      this.y = randI(0, rows) * 64;
+      this.radius = rand(1, 2.5);
+      this.maxRadius = rand(4, 10);
+      this.alpha = rand(0.1, 0.35);
+      this.pulseSpeed = rand(0.008, 0.022);
+      this.phase = rand(0, Math.PI * 2);
+      this.color = Math.random() > 0.85 ? COBALT : STEEL;
+    }
+    update() {
+      this.phase += this.pulseSpeed;
+    }
+    draw() {
+      const pulse = Math.sin(this.phase);
+      const r = this.radius + (this.maxRadius - this.radius) * ((pulse + 1) / 2);
+      const a = this.alpha * ((pulse + 1) / 2 + 0.2);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = this.color + a + ')';
+      ctx.fill();
+      /* crosshair tick */
+      ctx.strokeStyle = this.color + (a * 0.6) + ')';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(this.x - r * 2.5, this.y);
+      ctx.lineTo(this.x + r * 2.5, this.y);
+      ctx.moveTo(this.x, this.y - r * 2.5);
+      ctx.lineTo(this.x, this.y + r * 2.5);
+      ctx.stroke();
+    }
+  }
+
+  /* ══════════════════════════════════
+     CLASS 2: ArchLine — 청사진 구조선 (수평/수직)
+     수량: 30
+  ══════════════════════════════════ */
+  class ArchLine {
+    constructor() { this.init(); }
+    init() {
+      this.vertical = Math.random() > 0.5;
+      if (this.vertical) {
+        this.x = rand(0, canvas.width);
+        this.y = -canvas.height * rand(0.2, 0.5);
+        this.len = rand(canvas.height * 0.3, canvas.height * 0.8);
+        this.speed = rand(0.2, 0.6);
+      } else {
+        this.y = rand(0, canvas.height);
+        this.x = -canvas.width * rand(0.2, 0.5);
+        this.len = rand(canvas.width * 0.3, canvas.width * 0.8);
+        this.speed = rand(0.15, 0.45);
+      }
+      this.alpha = rand(0.04, 0.14);
+      this.width = rand(0.5, 1.2);
+      this.color = Math.random() > 0.7 ? COBALT : STEEL;
+    }
+    update() {
+      if (this.vertical) {
+        this.y += this.speed;
+        if (this.y > canvas.height + 100) this.init();
+      } else {
+        this.x += this.speed;
+        if (this.x > canvas.width + 100) this.init();
+      }
+    }
+    draw() {
+      ctx.strokeStyle = this.color + this.alpha + ')';
+      ctx.lineWidth = this.width;
+      ctx.beginPath();
+      if (this.vertical) {
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x, this.y + this.len);
+      } else {
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x + this.len, this.y);
+      }
+      ctx.stroke();
+
+      /* end-tick */
+      const tx = this.vertical ? this.x : this.x + this.len;
+      const ty = this.vertical ? this.y + this.len : this.y;
+      ctx.beginPath();
+      if (this.vertical) {
+        ctx.moveTo(tx - 4, ty);
+        ctx.lineTo(tx + 4, ty);
+      } else {
+        ctx.moveTo(tx, ty - 4);
+        ctx.lineTo(tx, ty + 4);
+      }
+      ctx.stroke();
+    }
+  }
+
+  /* ══════════════════════════════════
+     CLASS 3: DataMote — 부유하는 데이터 먼지
+     수량: 55
+  ══════════════════════════════════ */
+  class DataMote {
+    constructor() { this.init(); }
+    init() {
+      this.x = rand(0, canvas.width);
+      this.y = rand(0, canvas.height);
+      this.vx = rand(-0.18, 0.18);
+      this.vy = rand(-0.28, -0.08);
+      this.size = rand(1, 2.2);
+      this.alpha = rand(0.05, 0.22);
+      this.decay = rand(0.0005, 0.002);
+      this.color = [COBALT, STEEL, SILVER, WHITE][randI(0, 4)];
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= this.decay;
+      if (this.alpha <= 0 || this.y < -10) this.init();
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = this.color + this.alpha + ')';
+      ctx.fill();
+    }
+  }
+
+  /* ══════════════════════════════════
+     CLASS 4: GoldenVector — 황금비 벡터 화살표
+     수량: 12
+  ══════════════════════════════════ */
+  class GoldenVector {
+    constructor() { this.init(); }
+    init() {
+      this.x = rand(canvas.width * 0.1, canvas.width * 0.9);
+      this.y = rand(canvas.height * 0.1, canvas.height * 0.9);
+      this.angle = rand(0, Math.PI * 2);
+      this.len = rand(40, 100);
+      this.alpha = rand(0.06, 0.18);
+      this.speed = rand(0.004, 0.012);
+      this.color = Math.random() > 0.75 ? EMBER : COBALT;
+      this.life = 0;
+      this.maxLife = rand(200, 500);
+    }
+    update() {
+      this.life++;
+      this.angle += this.speed;
+      if (this.life > this.maxLife) this.init();
+    }
+    draw() {
+      const fadeIn  = Math.min(1, this.life / 40);
+      const fadeOut = Math.min(1, (this.maxLife - this.life) / 40);
+      const a = this.alpha * fadeIn * fadeOut;
+
+      const ex = this.x + Math.cos(this.angle) * this.len;
+      const ey = this.y + Math.sin(this.angle) * this.len;
+
+      ctx.strokeStyle = this.color + a + ')';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+
+      /* arrowhead */
+      const hw = 5, hl = 10;
+      const na = this.angle + Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(
+        ex + Math.cos(na - 0.4) * hl,
+        ey + Math.sin(na - 0.4) * hl
+      );
+      ctx.lineTo(
+        ex + Math.cos(na + 0.4) * hl,
+        ey + Math.sin(na + 0.4) * hl
+      );
+      ctx.closePath();
+      ctx.fillStyle = this.color + a + ')';
+      ctx.fill();
+    }
+  }
+
+  /* ─── Pool Init ─── */
+  let nodes, lines, motes, vectors;
+
+  function rebuildAll() {
+    nodes   = Array.from({ length: 48 }, () => new BlueprintNode());
+    lines   = Array.from({ length: 30 }, () => new ArchLine());
+    motes   = Array.from({ length: 55 }, () => new DataMote());
+    vectors = Array.from({ length: 12 }, () => new GoldenVector());
+  }
+  rebuildAll();
+
+  /* ─── Animation Loop ─── */
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    lines.forEach(p => { p.update(); p.draw(); });
+    nodes.forEach(p => { p.update(); p.draw(); });
+    motes.forEach(p => { p.update(); p.draw(); });
+    vectors.forEach(p => { p.update(); p.draw(); });
+
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  /* ─── Scroll Fade-up ─── */
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    }),
+    { threshold: 0.12 }
+  );
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+})();
+</script>
+
+</body>
+</html>
